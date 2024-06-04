@@ -9,6 +9,7 @@ from microsim.schema.backend import NumpyAPI
 from microsim.schema.lens import ObjectiveLens
 from microsim.schema.optical_config import OpticalConfig
 from microsim.schema.settings import Settings
+import cupy as cp
 
 
 class Confocal(SimBaseModel):
@@ -25,14 +26,20 @@ class Confocal(SimBaseModel):
     ) -> DataArray:
         xp = NumpyAPI.create(xp)
 
-        psf = make_psf(
-            space=truth.attrs["space"],
-            channel=channel,
-            objective=objective_lens,
-            pinhole_au=self.pinhole_au,
-            max_au_relative=settings.max_psf_radius_aus,
-            xp=xp,
-        )
+        with cp.cuda.Device(0):
 
-        img = xp.fftconvolve(truth.data, psf, mode="same")
+            psf = make_psf(
+                    space=truth.attrs["space"],
+                    channel=channel,
+                    objective=objective_lens,
+                    pinhole_au=self.pinhole_au,
+                    max_au_relative=settings.max_psf_radius_aus,
+                    xp=xp,
+                )
+
+            img = xp.fftconvolve(truth.data, psf, mode="same")
+            #move img to the same device as truth
+            img = xp.asarray(img)
+            del psf
+            cp.get_default_memory_pool().free_all_blocks()
         return DataArray(img, coords=truth.coords, attrs=truth.attrs)

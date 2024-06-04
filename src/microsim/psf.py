@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import cache
 from typing import TYPE_CHECKING
+import functools
 
 import numpy as np
 import numpy.typing as npt
@@ -367,7 +368,8 @@ def make_psf(
 
 
 # variant of make_psf that only accepts hashable arguments
-@cache
+#@cache
+@functools.lru_cache(maxsize=5000)
 def cached_psf(
     nz: int,
     nx: int,
