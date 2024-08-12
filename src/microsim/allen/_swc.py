@@ -158,3 +158,37 @@ class SWC:
             draw_sphere(grid, x, y, z, r)
 
         return grid.astype(np.uint8)
+
+    def create_truth_space(
+        self,
+        voxel_size: float = 1,
+        scale_factor: float = 3,
+        *,
+        include_types: Iterable[int] = (
+            SWCType.BASAL_DENDRITE,
+            SWCType.APICAL_DENDRITE,
+            SWCType.AXON,
+        ),
+    ) -> np.ndarray:
+        """Render a binary mask of the neuron reconstruction."""
+        from microsim._draw import draw_line_3d, draw_sphere
+
+        grid = self._empty_grid(voxel_size)
+        origin = np.min(self.coords, axis=0)  #min of all the x,y,z coordinates
+
+        dend_scale: float = 1
+        max_r = float(np.sum(grid.shape))
+
+        for par, child in self.iter_pairs(*include_types):
+            r = int(max(1,0.5 * scale_factor * dend_scale * (par.r + child.r)))
+            pz, py, px = par.shifted_coord(origin, voxel_size)
+            cz, cy, cx = child.shifted_coord(origin, voxel_size)
+            draw_line_3d(px, py, pz, cx, cy, cz, grid, max_r=max_r, width=2)
+
+        soma_scale: float = 1
+        for comp in self._node_types[SWCType.SOMA]:
+            z, y, x = comp.shifted_coord(origin, voxel_size)
+            r = int(0.5 * scale_factor * soma_scale * comp.r)
+            draw_sphere(grid, x, y, z, r)
+        print("next")
+        return grid.astype(np.float32)

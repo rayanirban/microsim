@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*DS_Store
 
 # C extensions
 *.so
@@ -108,3 +109,14 @@ microsim/_version.py
 microsim/**/*.c
 jrc_*
 dask-worker-space*
+
+# image files
+*.tif
+*.tiff
+*.npy
+
+#hpc files
+sbatch*
+
+#cell type files
+cell_types*
