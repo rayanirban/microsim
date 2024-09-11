@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import numpy as np
 
+import numpy as np
+from math import sqrt
 
 def draw_line_2d(
     y0: int, x0: int, y1: int, x1: int, grid: np.ndarray, max_r: float
@@ -124,3 +126,5 @@ else:
     draw_line_2d = njit(draw_line_2d)
     draw_line_3d = njit(draw_line_3d)
     draw_sphere = njit(draw_sphere)
+
+

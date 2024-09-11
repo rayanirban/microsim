@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     for k in tqdm(range(len(specimen_ids))):
         spec = Specimen.fetch(specimen_ids[k])
-        swc = spec.neuron_reconstructions[0].create_truth_space(voxel_size=2,scale_factor=1)
+        swc = spec.neuron_reconstructions[0].create_truth_space(dimension=(512,512,512), voxel_size=1)
         #add gaussian blur to the line
         #for i in range(swc.shape[0]):
         #    swc[i] = gaussian_filter(swc[i], sigma=1.0)
