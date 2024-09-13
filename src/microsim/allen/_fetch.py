@@ -68,8 +68,7 @@ class NeuronReconstruction(BaseModel):
             if (getattr(f.well_known_file_type, "name", None) == SWC_FILE_TYPE
                     and f.download_link):
                 return ALLEN_ROOT + f.download_link
-        raise ValueError(
-            "No SWC file found for this reconstruction.")  # pragma: no cover
+        raise ValueError("No SWC file found for this reconstruction.")  # pragma: no cover
 
     @cached_property
     def swc(self) -> SWC:
@@ -172,48 +171,33 @@ class Specimen(BaseModel):
     
     def augmented_masks(self, offset: tuple[float, float, float] = (0, 0, 0),
                         rotation: tuple[float, float, float] = (0, 0, 0),
-                        scale: float = 1.0) -> None:
+                        scale: float = 1.0,
+                        dim: int = 1) -> None:
         
-        self.offset_soma(offset)
-        self.rotate_soma(rotation)
-        self.scale_soma(scale)
+        self.new_extent(dim)
         self.offset_coords(offset)
         self.rotate_coords(rotation)
         self.scale_coords(scale)
         
     
     ###########
-    # Soma
-
-    def soma_location(self) -> tuple[float, float, float]:
-        """Return the location of the soma for this specimen."""
-        for coords in self.neuron_reconstructions:
-            coords.swc.soma_location()
-
-    def offset_soma(self, offset: tuple[float, float, float]) -> None:
-        """Offset the soma location of the neuron reconstruction."""
-        for offsets in self.neuron_reconstructions:
-            offsets.swc.offset_soma(offset)
-
-    def rotate_soma(self, rotation: tuple[float, float, float]) -> None:
-        """Rotate the soma of the neuron reconstruction."""
-        for rotations in self.neuron_reconstructions:
-            rotations.swc.rotate_soma(rotation)
-
-    def scale_soma(self, scale: float) -> None:
-        """Scale the soma of the neuron reconstruction."""
-        for scales in self.neuron_reconstructions:
-            scales.swc.scale_soma(scale)
-
-
-    ###########
-    # Coordinates
+    # The coordinates for the Specimen
 
     def coords_location(self) -> list[tuple[float, float, float]]:
         """Return the coordinates for this specimen."""
         for recon in self.neuron_reconstructions:
             return recon.swc.coords_location()   
-
+    
+    def new_extent(self, dim: int) -> None:
+        """Set the new extent for the neuron reconstruction."""
+        for recon in self.neuron_reconstructions:
+            recon.swc.new_extent(dim)
+                               
+    def soma_location(self) -> tuple[float, float, float]:
+        """Return the location of the soma."""
+        for recon in self.neuron_reconstructions:
+            return recon.swc.soma_location()
+        
     def offset_coords(self, offset: tuple[float, float, float]) -> None:
         """Offset the coordinates of the neuron reconstruction."""
         for offsets in self.neuron_reconstructions:
@@ -228,6 +212,7 @@ class Specimen(BaseModel):
         """Scale the coordinates of the neuron reconstruction."""
         for recon in self.neuron_reconstructions:
             recon.swc.scale_coords(scale)
+            
             
     ###########
     # Bounding Box for the Specimen
