@@ -157,4 +157,4 @@ class SWC:
             r = int(0.5 * scale_factor * soma_scale * comp.r)
             draw_sphere(grid, x, y, z, r)
 
-        return grid.astype(np.uint8)
+        return grid.astype(np.float32)
