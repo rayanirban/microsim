@@ -65,10 +65,14 @@ class NeuronReconstruction(BaseModel):
     def swc_path(self) -> str:
         """The SWC file for this reconstruction."""
         for f in self.well_known_files:
-            if (getattr(f.well_known_file_type, "name", None) == SWC_FILE_TYPE
-                    and f.download_link):
+            if (
+                getattr(f.well_known_file_type, "name", None) == SWC_FILE_TYPE
+                and f.download_link
+            ):
                 return ALLEN_ROOT + f.download_link
-        raise ValueError("No SWC file found for this reconstruction.")  # pragma: no cover
+        raise ValueError(
+            "No SWC file found for this reconstruction."
+        )  # pragma: no cover
 
     @cached_property
     def swc(self) -> SWC:
@@ -77,21 +81,9 @@ class NeuronReconstruction(BaseModel):
 
         return SWC.from_path(self.swc_path)
 
-    def binary_mask(self,
-                    voxel_size: float = 1,
-                    scale_factor: float = 3,
-                    empty_grid=None) -> np.ndarray:
+    def binary_mask(self, voxel_size: float = 1, scale_factor: float = 3) -> np.ndarray:
         """Return 3D binary mask for this neuron reconstructions."""
-        return self.swc.binary_mask(voxel_size=voxel_size,
-                                    scale_factor=scale_factor,
-                                    empty_grid=empty_grid)
-
-    def create_truth_space(self,
-                           dimension: tuple[int, int, int],
-                           voxel_size: float = 1) -> np.ndarray:
-        """Create a 3D binary mask for this neuron reconstruction."""
-        return self.swc.create_truth_space(dimension=dimension,
-                                           voxel_size=voxel_size)
+        return self.swc.binary_mask(voxel_size=voxel_size, scale_factor=scale_factor)
 
     @classmethod
     @cache
@@ -132,8 +124,7 @@ class Specimen(BaseModel):
     is_cell_specimen: bool
     specimen_id_path: str
     structure: Structure
-    neuron_reconstructions: list[NeuronReconstruction] = Field(
-        default_factory=list)
+    neuron_reconstructions: list[NeuronReconstruction] = Field(default_factory=list)
 
     @classmethod
     @cache
@@ -158,69 +149,16 @@ class Specimen(BaseModel):
             raise ValueError(qr.msg)
         return cast("Specimen", qr.msg[0])
 
-    def binary_masks(self, voxel_size: float = 1,
-                     scale_factor: float = 3,
-                     empty_grid: np.ndarray | None = None
-                     ) -> list[np.ndarray]:
+    def binary_masks(
+        self, voxel_size: float = 1, scale_factor: float = 3
+    ) -> list[np.ndarray]:
         """Return all binary masks for this specimen's neuron reconstructions."""
         masks = []
         for recon in self.neuron_reconstructions:
             masks.append(
-                recon.binary_mask(voxel_size=voxel_size, scale_factor=scale_factor, empty_grid=empty_grid))
+                recon.binary_mask(voxel_size=voxel_size, scale_factor=scale_factor)
+            )
         return masks
-    
-    def augmented_masks(self, offset: tuple[float, float, float] = (0, 0, 0),
-                        rotation: tuple[float, float, float] = (0, 0, 0),
-                        scale: float = 1.0,
-                        dim: int = 1) -> None:
-        
-        self.new_extent(dim)
-        self.offset_coords(offset)
-        self.rotate_coords(rotation)
-        self.scale_coords(scale)
-        
-    
-    ###########
-    # The coordinates for the Specimen
-
-    def coords_location(self) -> list[tuple[float, float, float]]:
-        """Return the coordinates for this specimen."""
-        for recon in self.neuron_reconstructions:
-            return recon.swc.coords_location()   
-    
-    def new_extent(self, dim: int) -> None:
-        """Set the new extent for the neuron reconstruction."""
-        for recon in self.neuron_reconstructions:
-            recon.swc.new_extent(dim)
-                               
-    def soma_location(self) -> tuple[float, float, float]:
-        """Return the location of the soma."""
-        for recon in self.neuron_reconstructions:
-            return recon.swc.soma_location()
-        
-    def offset_coords(self, offset: tuple[float, float, float]) -> None:
-        """Offset the coordinates of the neuron reconstruction."""
-        for offsets in self.neuron_reconstructions:
-            offsets.swc.offset_coords(offset)            
-
-    def rotate_coords(self, rotation: tuple[float, float, float]) -> None:
-        """Rotate the neuron reconstruction."""
-        for recon in self.neuron_reconstructions:
-            recon.swc.rotate_coords(rotation)
-
-    def scale_coords(self, scale: float) -> None:
-        """Scale the coordinates of the neuron reconstruction."""
-        for recon in self.neuron_reconstructions:
-            recon.swc.scale_coords(scale)
-            
-            
-    ###########
-    # Bounding Box for the Specimen
-
-    def getBoundingBox(self) -> tuple[float, float, float]:
-        """Return the bounding box for this specimen."""
-        bbox = self.neuron_reconstructions[0].swc.bounding_box()
-        return bbox
 
     @property
     def url(self) -> str:
@@ -270,10 +208,12 @@ class _QueryResponse(BaseModel):
     """Query response from the Allen Brain Map API."""
 
     success: bool
-    msg: (list[NeuronReconstruction]
-          | list[Specimen]
-          | list[ApiCellTypesSpecimenDetail]
-          | str)
+    msg: (
+        list[NeuronReconstruction]
+        | list[Specimen]
+        | list[ApiCellTypesSpecimenDetail]
+        | str
+    )
 
 
 def get_reconstructions(
@@ -284,6 +224,5 @@ def get_reconstructions(
     if species is not None:
         recons = (x for x in recons if x.donor__species == species)
     if reconstruction_type is not None:
-        recons = (x for x in recons
-                  if x.nr__reconstruction_type == reconstruction_type)
+        recons = (x for x in recons if x.nr__reconstruction_type == reconstruction_type)
     return tuple(recons)
