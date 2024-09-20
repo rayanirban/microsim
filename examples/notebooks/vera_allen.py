@@ -157,27 +157,31 @@ def create_combined_mask_for_simulation(
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--start", type=int, default=0)
+    argparser.add_argument("--start", type=int)
     args = argparser.parse_args()
     start = args.start
     all_specimen_ids = np.loadtxt("specimen_ids.csv", delimiter=",", dtype=int)
+    sample_output_size = np.array([256, 512, 512])
     i = start
-    while i < start + 100:
-        sample_size = np.random.randint(8, 12)  # random sample size between 8 and 12 specimens
-        specimen_ids = all_specimen_ids[np.random.choice(all_specimen_ids.shape[0], sample_size, replace=False)]
-        try:
-            output = create_combined_mask_for_simulation(
-                specimen_ids=specimen_ids,
-                specimen_line_scale_factor=1,
-                scale_range=(0.8, 1.2),
-                rotation_range=(-2 * np.pi, 2 * np.pi),
-                sample_output_size=np.array([256, 512, 512]),  # z,x,y the size of the output volume
-            )
-            if output.shape != (256, 512, 512):
-                print(f"Output shape is not correct for specimen_ids: {specimen_ids}")
+    with tqdm(total=100) as pbar:
+        while i < start + 100:
+            sample_size = np.random.randint(8, 12)  # random sample size between 8 and 12 specimens
+            specimen_ids = all_specimen_ids[np.random.choice(all_specimen_ids.shape[0], sample_size, replace=False)]
+            try:
+                output = create_combined_mask_for_simulation(
+                    specimen_ids=specimen_ids,
+                    specimen_line_scale_factor=1,
+                    scale_range=(0.8, 1.2),
+                    rotation_range=(-2 * np.pi, 2 * np.pi),
+                    sample_output_size=sample_output_size,  # z,x,y the size of the output volume
+                )
+                if output.shape != (sample_output_size[0], sample_output_size[1], sample_output_size[2]):
+                    print(output.shape, (sample_output_size[0], sample_output_size[1], sample_output_size[2]))
+                    print(f"Output shape is not correct for specimen_ids: {specimen_ids}")
+                    continue
+            except Exception as e:
+                print(f"{e} for specimen_ids: {specimen_ids}")
                 continue
-        except Exception as e:
-            print(f"{e} for specimen_ids: {specimen_ids}")
-            continue
-        tifffile.imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined/GT_Volumes/{i:04d}_.tif", output.astype(np.float32))
-        i += 1
+            tifffile.imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined/GT_Volumes/{i:04d}_.tif", output.astype(np.float32))
+            i += 1
+            pbar.update(1)
