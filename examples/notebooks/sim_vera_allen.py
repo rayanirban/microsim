@@ -17,17 +17,14 @@ if __name__ == "__main__":
     files = os.listdir(path)
     files.sort()
     generated_images = []
-    pinholes = np.linspace(0.5, 8.75, 22)[2::6]
-    downscale = 4
+    pinholes = np.linspace(0.5, 8.75, 34)
+    downscale = 8
 
     for images in tqdm(range(start, start + 100)):
         sample = imread(f"{path}/{files[images]}")
-        #if the dim 0 of sample is not divisible by 4, then remove the last few rows
-        if sample.shape[0] % 4 != 0:
-            sample = sample[:-(sample.shape[0] % downscale)]
         sim = ms.Simulation.from_ground_truth(
             ground_truth=sample,
-            scale=(0.02, 0.01, 0.01),
+            scale=(0.04, 0.02, 0.02),
             output_space={"downscale": downscale},
             modality=ms.Confocal(pinhole_au=0.5),
             detector=ms.CameraCCD(qe=0.82,full_well=18000,read_noise=6,bit_depth=12,offset=100),

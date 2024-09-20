@@ -129,7 +129,6 @@ class SWC:
         self,
         voxel_size: float = 1,
         scale_factor: float = 3,
-        grid_size: tuple[int, int, int] | None = None,
         *,
         include_types: Iterable[int] = (
             SWCType.BASAL_DENDRITE,
@@ -158,10 +157,4 @@ class SWC:
             r = int(0.5 * scale_factor * soma_scale * comp.r)
             draw_sphere(grid, x, y, z, r)
         
-        #center crop the grid to the specified grid_size
-        if grid_size is not None:
-            z, y, x = grid_size
-            z0, y0, x0 = (grid.shape - np.array([z, y, x])) // 2
-            grid = grid[z0 : z0 + z, y0 : y0 + y, x0 : x0 + x]
-
         return grid.astype(np.float32)
