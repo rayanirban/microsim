@@ -17,7 +17,7 @@ if __name__ == "__main__":
     files = os.listdir(path)
     files.sort()
     generated_images = []
-    pinholes = np.linspace(0.5, 8.75, 34)
+    pinholes = np.linspace(0.5, 5.5, 21)
     downscale = 8
 
     for images in tqdm(range(start, start + 100)):
@@ -36,9 +36,14 @@ if __name__ == "__main__":
             sim = sim.model_copy(update=dict(modality=ms.Confocal(pinhole_au=au)))
             sim.run()
             optical_image = sim.optical_image(gt)
+            #only taking the middle slice of the 3D volume
+            optical_image = np.array(optical_image)
+            optical_image = optical_image[optical_image.shape[0] // 2]
+            optical_image = np.expand_dims(optical_image, axis=0)
+            optical_image = np.repeat(optical_image, 256, axis=0)
 
             #noisy image
-            generated_images_noisy = sim.digital_image(optical_image, with_detector_noise=True)
+            generated_images_noisy = sim.digital_image(optical_image, with_detector_noise=True, photons_pp_ps_max=800)
             generated_images_noisy = np.array(generated_images_noisy)
             generated_image_noisy = generated_images_noisy[generated_images_noisy.shape[0] // 2]
             all_images_noisy.append(generated_image_noisy)
@@ -51,5 +56,5 @@ if __name__ == "__main__":
 
         all_images_noisy = np.array(all_images_noisy)
         all_images_clean = np.array(all_images_clean)
-        imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined/train_noisy/{files[images]}",all_images_noisy.astype(np.float32))
-        imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined/train_clean/{files[images]}",all_images_clean.astype(np.float32))
+        imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined_55_mid/train_noisy/{files[images]}",all_images_noisy.astype(np.float32))
+        imwrite(f"/group/jug/Anirban/Datasets/AllNeuron_Combined_55_mid/train_clean/{files[images]}",all_images_clean.astype(np.float32))
