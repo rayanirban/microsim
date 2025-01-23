@@ -13,7 +13,8 @@ if __name__ == "__main__":
     argparser.add_argument("--start", type=int, default=0)
     args = argparser.parse_args()
     start = args.start
-    path = f"/group/jug/Anirban/Datasets/care_florian/All_data"
+    path = f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/All_data_N2V"
+    path_original = f"/group/jug/Anirban/Datasets/care_florian/All_data"
     files = os.listdir(path)
     files.sort()
     generated_images = []
@@ -23,12 +24,15 @@ if __name__ == "__main__":
 
     for images in tqdm(range(start, len(files))):
         sample = imread(f"{path}/{files[images]}")
+        sample_original = imread(f"{path_original}/{files[images]}")
         
         #convert the image to uint8
         # Normalize to range [0, 255] and convert to uint8 and then back to uint16
-        min_val = np.min(sample, axis=(1,2))
-        max_val = np.max(sample, axis=(1,2))
-        sample = ((sample - min_val[:, None, None]) / (max_val - min_val)[:, None, None] * 255).astype(np.uint8).astype(np.uint16)
+        min_val = np.min(sample_original, axis=(1,2))
+        max_val = np.max(sample_original, axis=(1,2))
+        sample_original = ((sample_original - min_val[:, None, None]) / (max_val - min_val)[:, None, None] * 255).astype(np.uint8).astype(np.uint16)
+        
+        sample = sample.astype(np.uint16)
             
         sim = ms.Simulation.from_ground_truth(
             ground_truth=sample,
@@ -42,8 +46,8 @@ if __name__ == "__main__":
         all_images_noisy = []
         all_images_clean = []
         #append the middle slice of gt the 3D volume to the list
-        all_images_noisy.append(sample[sample.shape[0] // 2])
-        all_images_clean.append(sample[sample.shape[0] // 2])
+        all_images_noisy.append(sample_original[sample_original.shape[0] // 2])
+        all_images_clean.append(sample_original[sample_original.shape[0] // 2])
         for _, au in enumerate(pinholes):
             sim = sim.model_copy(update=dict(modality=ms.Confocal(pinhole_au=au)))
             sim.run()
@@ -70,5 +74,5 @@ if __name__ == "__main__":
 
         all_images_noisy = np.array(all_images_noisy)
         all_images_clean = np.array(all_images_clean)
-        imwrite(f"/group/jug/Anirban/Datasets/care_florian/microsim/train_noisy/{files[images]}",all_images_noisy.astype(np.float32))
-        # imwrite(f"/group/jug/Anirban/Datasets/care_florian/microsim/train_clean/{files[images]}",all_images_clean.astype(np.float32))
+        imwrite(f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/microsim/train_noisy/{files[images]}",all_images_noisy.astype(np.float32))
+        # imwrite(f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/microsim/train_clean/{files[images]}",all_images_clean.astype(np.float32))
