@@ -13,12 +13,13 @@ if __name__ == "__main__":
     argparser.add_argument("--start", type=int, default=0)
     args = argparser.parse_args()
     start = args.start
-    path = f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/All_data_N2V"
-    path_original = f"/group/jug/Anirban/Datasets/care_florian/All_data"
+    path = f"/group/jug/Anirban/Datasets/AllenCell/N2V_Processed/FullData_1_N2V"
+    path_original = f"/group/jug/Anirban/Datasets/AllenCell/N2V_Processed/All_data_1"
     files = os.listdir(path)
     files.sort()
     generated_images = []
-    pinholes = [30.0]#np.linspace(5.0, 5.5, 2)
+    # pinholes = [6.0]#np.linspace(5.0, 5.5, 2)
+    pinholes = [45.0]#np.linspace(5.0, 5.5, 2)
     downscale = 1
     repeat_size = 52
 
@@ -28,16 +29,17 @@ if __name__ == "__main__":
         
         #convert the image to uint8
         # Normalize to range [0, 255] and convert to uint8 and then back to uint16
-        min_val = np.min(sample_original, axis=(1,2))
-        max_val = np.max(sample_original, axis=(1,2))
-        sample_original = ((sample_original - min_val[:, None, None]) / (max_val - min_val)[:, None, None] * 255).astype(np.uint8).astype(np.uint16)
+        # min_val = np.min(sample_original, axis=(1,2))
+        # max_val = np.max(sample_original, axis=(1,2))
+        # sample_original = ((sample_original - min_val[:, None, None]) / (max_val - min_val)[:, None, None] * 255).astype(np.uint8).astype(np.uint16)
         
         sample = sample.astype(np.uint16)
             
         sim = ms.Simulation.from_ground_truth(
             ground_truth=sample,
             # scale=(0.04, 0.02, 0.02), #.6, .2, .2
-            scale=(0.4, 0.2, 0.2),
+            # scale=(0.29, 0.10, 0.10),
+            scale=(0.55, 0.169, 0.169),
             output_space={"downscale": downscale},
             modality=ms.Confocal(pinhole_au=0.5),
             detector=ms.CameraCCD(qe=0.82,full_well=18000,read_noise=6,bit_depth=12,offset=100),
@@ -74,5 +76,4 @@ if __name__ == "__main__":
 
         all_images_noisy = np.array(all_images_noisy)
         all_images_clean = np.array(all_images_clean)
-        imwrite(f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/microsim/train_noisy/{files[images]}",all_images_noisy.astype(np.float32))
-        # imwrite(f"/group/jug/Anirban/Datasets/care_florian/N2V_Processed/microsim/train_clean/{files[images]}",all_images_clean.astype(np.float32))
+        imwrite(f"/group/jug/Anirban/Datasets/AllenCell/N2V_Processed/microsim/train_noisy_1/{files[images]}",all_images_noisy.astype(np.float32))

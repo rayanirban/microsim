@@ -13,6 +13,7 @@ from microsim.schema.lens import ObjectiveLens
 from microsim.schema.optical_config import OpticalConfig
 from microsim.schema.settings import Settings
 from microsim.schema.space import SpaceProtocol
+import numpy as np
 
 
 class _PSFModality(SimBaseModel):

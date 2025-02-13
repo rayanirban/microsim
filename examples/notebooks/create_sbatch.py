@@ -16,12 +16,12 @@ def create_text(start):
 #SBATCH --mem=128GB
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks=1
-#SBATCH --job-name={}_Allen
+#SBATCH --job-name={}_Neuron
 #SBATCH --time=96:00:00
 
 source $HOME/.bashrc
 conda activate microsim_pytorch
-python sim_vera_allen.py --start {}
+python sim_vera_neuron_damian.py --start {}
 """.format(start, start, start)
 
     return text
